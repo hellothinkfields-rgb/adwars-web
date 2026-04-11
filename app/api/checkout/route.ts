@@ -5,7 +5,7 @@ import { BASE_PRICE, CONQUEST_MULTIPLIER, CHARITY_PCT, FOUNDER_PCT, REFUND_PCT }
 import { validateSelection } from '@/lib/grid-utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
+  apiVersion: '2023-10-16',
 });
 
 export async function POST(req: NextRequest) {
