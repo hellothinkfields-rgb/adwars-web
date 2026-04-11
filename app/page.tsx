@@ -21,8 +21,6 @@ export default function HomePage() {
   const [liveCount, setLiveCount] = useState(0);
   const [banner, setBanner] = useState<string | null>(null);
 
-  // ─── Initial data load ────────────────────────────────────────────────────
-
   const loadGrid = useCallback(async () => {
     const { data } = await supabase
       .from('grid_cells')
@@ -60,7 +58,6 @@ export default function HomePage() {
     loadStats();
   }, [loadGrid, loadBrands, loadStats]);
 
-  // Restore saved brand from localStorage
   useEffect(() => {
     const savedId = localStorage.getItem(BRAND_STORAGE_KEY);
     if (savedId && brands.length > 0) {
@@ -69,10 +66,7 @@ export default function HomePage() {
     }
   }, [brands]);
 
-  // ─── Real-time subscriptions ──────────────────────────────────────────────
-
   useEffect(() => {
-    // Track online presence
     const presenceChannel = supabase.channel('presence');
     presenceChannel
       .on('presence', { event: 'sync' }, () => {
@@ -85,7 +79,6 @@ export default function HomePage() {
         }
       });
 
-    // Grid real-time updates
     const gridChannel = supabase
       .channel('grid-changes')
       .on(
@@ -118,7 +111,6 @@ export default function HomePage() {
       )
       .subscribe();
 
-    // Stats real-time
     const statsChannel = supabase
       .channel('stats-changes')
       .on(
@@ -135,8 +127,6 @@ export default function HomePage() {
     };
   }, []);
 
-  // ─── Brand handlers ───────────────────────────────────────────────────────
-
   function handleRegister(brand: Brand) {
     setBrands(prev => [...prev.filter(b => b.id !== brand.id), brand]);
     setSelectedBrand(brand);
@@ -151,174 +141,189 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0a1a' }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-black tracking-tight text-white">
-            ⚔️ <span style={{ color: '#C0392B' }}>AD</span> WARS
-          </h1>
-          <span
-            className="text-xs px-2 py-0.5 rounded-full font-medium"
-            style={{ background: 'rgba(192,57,43,0.2)', color: '#C0392B', border: '1px solid rgba(192,57,43,0.3)' }}
-          >
-            LIVE
-          </span>
-        </div>
+    <div className="min-h-screen bg-[#050510] text-white">
 
-        <div className="flex items-center gap-3">
-          {/* Live viewer count */}
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: '#8892a4' }}>
-            <span className="pulse-dot w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-            {liveCount} watching
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#050510]/95 backdrop-blur-sm">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+
+          {/* Logo */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <h1 className="text-xl font-black tracking-tight">
+              ⚔️ <span className="text-[#C0392B]">AD</span> WARS
+            </h1>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C0392B]/15 text-[#C0392B] border border-[#C0392B]/30 tracking-wider">
+              LIVE
+            </span>
           </div>
 
-          {/* Brand selector / register button */}
-          {selectedBrand ? (
-            <div className="flex items-center gap-2">
-              <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold"
-                style={{ background: selectedBrand.color + '22', border: `1px solid ${selectedBrand.color}44`, color: selectedBrand.color }}
-              >
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ background: selectedBrand.color }}
-                />
-                {selectedBrand.name}
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-white/35">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block pulse-dot" />
+              {liveCount} watching
+            </div>
+
+            {selectedBrand ? (
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold"
+                  style={{
+                    background: selectedBrand.color + '1a',
+                    border: `1px solid ${selectedBrand.color}40`,
+                    color: selectedBrand.color,
+                  }}
+                >
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: selectedBrand.color }} />
+                  <span className="max-w-[120px] truncate">{selectedBrand.name}</span>
+                </div>
+                <button
+                  onClick={() => setShowBrandModal(true)}
+                  className="text-xs px-2.5 py-1.5 rounded-lg bg-white/[0.05] text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                >
+                  Switch
+                </button>
               </div>
+            ) : (
               <button
                 onClick={() => setShowBrandModal(true)}
-                className="text-xs px-2 py-1.5 rounded-lg"
-                style={{ background: 'rgba(255,255,255,0.07)', color: '#8892a4' }}
+                className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-[#C0392B] hover:bg-[#a93226] transition-colors shadow-lg shadow-[#C0392B]/20"
               >
-                Switch
+                Register Brand
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowBrandModal(true)}
-              className="px-4 py-2 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90"
-              style={{ background: '#C0392B' }}
-            >
-              Register Brand
-            </button>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Banner */}
+      {/* Conquest banner */}
       {banner && (
-        <div
-          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-xl"
-          style={{ background: '#C0392B' }}
-        >
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-[#C0392B] shadow-xl shadow-[#C0392B]/25 whitespace-nowrap pointer-events-none">
           {banner}
         </div>
       )}
 
-      {/* Stats bar */}
-      <div className="px-4 sm:px-6 pt-4 pb-2">
+      {/* Stats */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <StatsBar stats={stats} />
       </div>
 
       {/* Main layout */}
-      <main className="flex flex-col lg:flex-row gap-4 px-4 sm:px-6 py-4">
-        {/* Grid */}
-        <div className="flex-1 min-w-0">
-          <Grid
-            grid={grid}
-            brands={brands}
-            selectedBrand={selectedBrand}
-            onNeedRegister={() => setShowBrandModal(true)}
-          />
-        </div>
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-        {/* Sidebar */}
-        <div
-          className="lg:w-72 xl:w-80 flex-shrink-0 rounded-2xl overflow-hidden"
-          style={{ background: '#0e1628', border: '1px solid rgba(255,255,255,0.07)' }}
-        >
-          {/* Tabs */}
-          <div className="flex border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-            {(['leaderboard', 'howto'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setSidebarTab(tab)}
-                className="flex-1 py-3 text-sm font-semibold transition-colors capitalize"
-                style={{
-                  color: sidebarTab === tab ? '#fff' : '#8892a4',
-                  borderBottom: sidebarTab === tab ? '2px solid #C0392B' : '2px solid transparent',
-                }}
-              >
-                {tab === 'leaderboard' ? 'Leaderboard' : 'How It Works'}
-              </button>
-            ))}
+          {/* Grid */}
+          <div className="flex-1 min-w-0">
+            <Grid
+              grid={grid}
+              brands={brands}
+              selectedBrand={selectedBrand}
+              onNeedRegister={() => setShowBrandModal(true)}
+            />
           </div>
 
-          <div className="p-4 overflow-y-auto" style={{ maxHeight: '70vh' }}>
-            {sidebarTab === 'leaderboard' ? (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-bold text-white">Territory Control</h2>
-                  <button
-                    onClick={() => setShowBrandModal(true)}
-                    className="text-xs px-2.5 py-1 rounded-lg font-semibold"
-                    style={{ background: 'rgba(192,57,43,0.2)', color: '#C0392B', border: '1px solid rgba(192,57,43,0.3)' }}
-                  >
-                    + Register
-                  </button>
-                </div>
-                <Leaderboard grid={grid} brands={brands} selectedBrand={selectedBrand} />
-              </>
-            ) : (
-              <HowItWorks />
-            )}
+          {/* Sidebar */}
+          <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 rounded-2xl overflow-hidden border border-white/[0.07] bg-[#0a0f1e]">
+            {/* Tabs */}
+            <div className="flex border-b border-white/[0.07]">
+              {(['leaderboard', 'howto'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setSidebarTab(tab)}
+                  className="flex-1 py-3.5 text-sm font-semibold transition-colors"
+                  style={{
+                    color: sidebarTab === tab ? '#fff' : 'rgba(255,255,255,0.3)',
+                    borderBottom: sidebarTab === tab ? '2px solid #C0392B' : '2px solid transparent',
+                  }}
+                >
+                  {tab === 'leaderboard' ? 'Leaderboard' : 'How It Works'}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+              {sidebarTab === 'leaderboard' ? (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-bold text-white">Territory Control</h2>
+                    <button
+                      onClick={() => setShowBrandModal(true)}
+                      className="text-xs px-2.5 py-1 rounded-lg font-semibold bg-[#C0392B]/15 text-[#C0392B] border border-[#C0392B]/25 hover:bg-[#C0392B]/25 transition-colors"
+                    >
+                      + Register
+                    </button>
+                  </div>
+                  <Leaderboard grid={grid} brands={brands} selectedBrand={selectedBrand} />
+                </>
+              ) : (
+                <HowItWorks />
+              )}
+            </div>
           </div>
         </div>
       </main>
 
-      {/* Brand modal */}
-      {showBrandModal && (
-        <BrandModal
-          onClose={() => setShowBrandModal(false)}
-          onRegister={handleRegister}
-        />
-      )}
+      <BrandModal
+        open={showBrandModal}
+        onClose={() => setShowBrandModal(false)}
+        onRegister={handleRegister}
+      />
     </div>
   );
 }
 
 function HowItWorks() {
+  const steps = [
+    {
+      icon: '⚔️',
+      title: 'Claim Territory',
+      desc: 'Register your brand and pay to claim squares on the 64×64 grid. Your first squares can go anywhere.',
+    },
+    {
+      icon: '🗺️',
+      title: 'Expand Your Empire',
+      desc: 'After your first claim, you can only expand into squares adjacent to your existing territory.',
+    },
+    {
+      icon: '⚡',
+      title: 'Conquer Others',
+      desc: 'Pay 1.5× what someone paid to conquer their squares. They get 30% back automatically.',
+    },
+    {
+      icon: '♥',
+      title: '35% to Charity',
+      desc: 'Every conquest donates 35% to charity. The more brands fight, the more good gets done.',
+    },
+  ];
+
   return (
-    <div className="space-y-4 text-sm" style={{ color: '#8892a4' }}>
-      <div>
-        <h3 className="text-white font-semibold mb-1">⚔️ Claim Territory</h3>
-        <p>Register your brand and pay to claim squares on the 64×64 grid. Your first squares can go anywhere.</p>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-1">🗺️ Expand Your Empire</h3>
-        <p>After your first claim, you can only expand into squares adjacent to your existing territory.</p>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-1">⚡ Conquer Others</h3>
-        <p>Pay 1.5× what someone paid to conquer their squares. They get 30% back automatically.</p>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-1 flex items-center gap-1">
-          <span style={{ color: '#2ecc71' }}>♥</span> 35% to Charity
-        </h3>
-        <p>Every conquest donates 35% to charity. The more brands fight, the more good gets done.</p>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-1">💰 Pricing</h3>
-        <ul className="space-y-0.5 text-xs">
-          <li>Empty square: <span className="text-white">$1.00</span></li>
-          <li>Owned square: <span className="text-white">1.5× what was paid</span></li>
-          <li>On conquest: 30% refund · 35% charity · 35% platform</li>
-        </ul>
-      </div>
-      <div className="pt-2 text-xs" style={{ color: '#8892a4' }}>
-        The grid updates live for everyone watching. Every battle, every conquest, every dollar donated — visible to all.
+    <div className="space-y-5">
+      {steps.map((step, i) => (
+        <div key={i} className="flex gap-3">
+          <span className="text-xl flex-shrink-0 mt-0.5 w-7 text-center">{step.icon}</span>
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-0.5">{step.title}</h3>
+            <p className="text-xs text-white/35 leading-relaxed">{step.desc}</p>
+          </div>
+        </div>
+      ))}
+
+      <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 text-xs">
+        <div className="font-semibold text-white/50 mb-2.5">Pricing breakdown</div>
+        <div className="space-y-1.5">
+          {[
+            ['Empty square', '$1.00', 'text-white'],
+            ['Owned square', '1.5× paid', 'text-white'],
+            ['To previous owner', '30%', 'text-white'],
+            ['To charity', '35%', 'text-emerald-400'],
+            ['Platform', '35%', 'text-white'],
+          ].map(([label, value, cls]) => (
+            <div key={label} className="flex justify-between text-white/35">
+              <span>{label}</span>
+              <span className={cls}>{value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

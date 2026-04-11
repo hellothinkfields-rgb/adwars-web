@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
 function SuccessContent() {
   const params = useSearchParams();
@@ -23,41 +22,45 @@ function SuccessContent() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a1a' }}>
-      <div className="text-center max-w-md px-6">
-        <div className="text-6xl mb-6">⚔️</div>
-        <h1 className="text-3xl font-black text-white mb-3">Territory Claimed!</h1>
-        <p className="text-lg mb-2" style={{ color: '#2ecc71' }}>
+    <div className="min-h-screen bg-[#050510] flex items-center justify-center px-4">
+      <div className="w-full max-w-md text-center">
+
+        {/* Icon */}
+        <div className="w-20 h-20 rounded-full bg-[#C0392B]/15 border border-[#C0392B]/30 flex items-center justify-center text-4xl mx-auto mb-6">
+          ⚔️
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-3">
+          Territory Claimed!
+        </h1>
+        <p className="text-white/50 mb-8 text-lg">
           Your conquest is now live on the battlefield.
         </p>
-        <p className="text-sm mb-8" style={{ color: '#8892a4' }}>
-          35% of your payment has been donated to charity.
-        </p>
 
-        <div
-          className="rounded-xl p-4 mb-6 text-sm"
-          style={{ background: 'rgba(46,204,113,0.1)', border: '1px solid rgba(46,204,113,0.3)', color: '#2ecc71' }}
-        >
-          <div className="font-semibold mb-1">♥ Thank you for giving</div>
-          <div style={{ color: '#8892a4' }}>Your payment includes a charity donation that goes to good causes.</div>
+        {/* Charity card */}
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-6 py-5 mb-8 text-left">
+          <div className="flex items-start gap-3">
+            <span className="text-emerald-400 text-xl flex-shrink-0">♥</span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-400 mb-1">Thank you for giving</p>
+              <p className="text-xs text-white/40 leading-relaxed">
+                35% of your payment has been donated to charity. Every conquest on Ad Wars makes the world a little better.
+              </p>
+            </div>
+          </div>
         </div>
 
         <a
           href="/"
-          className="inline-block px-8 py-3 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
-          style={{ background: '#C0392B' }}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white text-sm bg-[#C0392B] hover:bg-[#a93226] transition-colors shadow-lg shadow-[#C0392B]/20"
         >
           Back to Battlefield
         </a>
-        <p className="text-xs mt-4" style={{ color: '#8892a4' }}>
-          Auto-redirecting in {countdown}s…
-        </p>
 
-        {sessionId && (
-          <p className="text-xs mt-2" style={{ color: '#8892a4' }}>
-            Session: {sessionId.slice(-12)}
-          </p>
-        )}
+        <p className="text-xs text-white/20 mt-5">
+          Auto-redirecting in {countdown}s
+          {sessionId && <span className="ml-2 opacity-50">· {sessionId.slice(-8)}</span>}
+        </p>
       </div>
     </div>
   );
@@ -65,7 +68,7 @@ function SuccessContent() {
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" style={{ background: '#0a0a1a' }} />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#050510]" />}>
       <SuccessContent />
     </Suspense>
   );

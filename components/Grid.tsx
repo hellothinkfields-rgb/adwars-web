@@ -330,31 +330,33 @@ export default function Grid({ grid, brands, selectedBrand, onNeedRegister }: Pr
   );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+
       {/* Brush controls */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs font-medium" style={{ color: '#8892a4' }}>Brush:</span>
-        {([1, 2, 3, 5] as BrushSize[]).map(s => (
-          <button
-            key={s}
-            onClick={() => setBrushSize(s)}
-            className="px-2.5 py-1 rounded text-xs font-bold transition-all"
-            style={{
-              background: brushSize === s ? (selectedBrand?.color ?? '#C0392B') : 'rgba(255,255,255,0.07)',
-              color: brushSize === s ? '#fff' : '#8892a4',
-            }}
-          >
-            {s}×{s}
-          </button>
-        ))}
-        <span className="text-xs ml-2" style={{ color: '#8892a4' }}>
-          Shift+drag for rectangle select
+      <div className="flex items-center gap-2.5 flex-wrap px-3 py-2.5 rounded-xl border border-white/[0.07] bg-[#0a0f1e]">
+        <span className="text-xs font-medium text-white/35 flex-shrink-0">Brush size</span>
+        <div className="flex gap-1.5">
+          {([1, 2, 3, 5] as BrushSize[]).map(s => (
+            <button
+              key={s}
+              onClick={() => setBrushSize(s)}
+              className="w-10 h-7 rounded-md text-xs font-bold transition-all"
+              style={{
+                background: brushSize === s ? (selectedBrand?.color ?? '#C0392B') : 'rgba(255,255,255,0.06)',
+                color: brushSize === s ? '#fff' : 'rgba(255,255,255,0.35)',
+              }}
+            >
+              {s}×{s}
+            </button>
+          ))}
+        </div>
+        <span className="text-[11px] text-white/20 hidden sm:block">
+          Shift+drag to rectangle-select
         </span>
         {selectedCells.size > 0 && (
           <button
             onClick={() => setSelectedCells(new Set())}
-            className="ml-auto text-xs px-2 py-1 rounded"
-            style={{ background: 'rgba(255,255,255,0.07)', color: '#8892a4' }}
+            className="ml-auto text-xs px-2.5 py-1 rounded-md bg-white/[0.05] text-white/35 hover:text-white/60 transition-colors"
           >
             Clear
           </button>
@@ -364,56 +366,74 @@ export default function Grid({ grid, brands, selectedBrand, onNeedRegister }: Pr
       {/* Canvas wrapper */}
       <div
         ref={containerRef}
-        className="relative w-full"
+        className="relative w-full rounded-xl overflow-hidden border border-white/[0.07]"
         style={{ aspectRatio: '1', maxWidth: CANVAS_SIZE }}
       >
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="w-full h-full rounded-lg cursor-crosshair"
+          className="w-full h-full cursor-crosshair"
           style={{ imageRendering: 'pixelated' }}
           onMouseMove={handleMouseMove}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
         />
-        {/* Logo overlays */}
-        <div className="absolute inset-0 pointer-events-none rounded-lg overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {logoOverlays}
         </div>
       </div>
 
-      {/* Conquest bar */}
-      {selectedCells.size > 0 && (
-        <div
-          className="rounded-xl p-4 flex items-center gap-4"
-          style={{ background: '#16213e', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          <div className="flex-1">
-            <p className="text-white font-bold text-lg">{formatUSD(conquestPrice)}</p>
-            <p className="text-xs" style={{ color: '#8892a4' }}>
-              {validSelected.length} square{validSelected.length !== 1 ? 's' : ''} ·{' '}
-              30% back to owners · 35% to charity
-            </p>
-          </div>
-          <button
-            onClick={handleConquer}
-            disabled={loading || validSelected.length === 0}
-            className="px-6 py-2.5 rounded-lg font-bold text-white text-sm transition-all hover:opacity-90 disabled:opacity-40"
-            style={{ background: selectedBrand?.color ?? '#C0392B' }}
-          >
-            {loading ? 'Loading...' : selectedBrand ? '⚔️ Conquer' : 'Register & Conquer'}
-          </button>
+      {/* Hover tooltip */}
+      {hoveredCell !== null && grid[hoveredCell] && (
+        <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/40">
+          <span
+            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+            style={{ background: grid[hoveredCell].color }}
+          />
+          <span>
+            <span className="text-white font-semibold">{grid[hoveredCell].brand_name}</span>
+            {' · '}paid {formatUSD(grid[hoveredCell].price_paid)}
+            {' · '}conquer for{' '}
+            <span className="text-[#C0392B] font-semibold">
+              {formatUSD(Math.max(1, grid[hoveredCell].price_paid * 1.5))}
+            </span>
+          </span>
         </div>
       )}
 
-      {/* Hover tooltip */}
-      {hoveredCell !== null && grid[hoveredCell] && (
-        <div className="text-xs text-center" style={{ color: '#8892a4' }}>
-          Owned by <span className="text-white font-semibold">{grid[hoveredCell].brand_name}</span>
-          {' · '}paid {formatUSD(grid[hoveredCell].price_paid)}
-          {' · '}conquer for {formatUSD(Math.max(1, grid[hoveredCell].price_paid * 1.5))}
+      {/* Conquest bar */}
+      {selectedCells.size > 0 && (
+        <div className="rounded-xl border border-white/[0.09] bg-[#0a0f1e] p-4">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div>
+              <div className="text-2xl font-black text-white tabular-nums">
+                {formatUSD(conquestPrice)}
+              </div>
+              <div className="text-xs text-white/35 mt-0.5">
+                {validSelected.length} square{validSelected.length !== 1 ? 's' : ''} selected
+              </div>
+            </div>
+            <button
+              onClick={handleConquer}
+              disabled={loading || validSelected.length === 0}
+              className="px-6 py-2.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90 disabled:opacity-40 flex-shrink-0 shadow-lg"
+              style={{
+                background: selectedBrand?.color ?? '#C0392B',
+                boxShadow: `0 4px 20px ${(selectedBrand?.color ?? '#C0392B')}40`,
+              }}
+            >
+              {loading ? 'Redirecting…' : selectedBrand ? '⚔️ Conquer' : 'Register & Conquer'}
+            </button>
+          </div>
+          <div className="flex gap-3 text-[11px] text-white/25 border-t border-white/[0.06] pt-3">
+            <span>30% refunded to owners</span>
+            <span>·</span>
+            <span className="text-emerald-400/60">35% to charity</span>
+            <span>·</span>
+            <span>35% platform</span>
+          </div>
         </div>
       )}
     </div>

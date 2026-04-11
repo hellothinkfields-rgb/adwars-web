@@ -3,8 +3,15 @@
 import { useState } from 'react';
 import { Brand } from '@/lib/types';
 import { getContrastColor } from '@/lib/grid-utils';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface Props {
+  open: boolean;
   onClose: () => void;
   onRegister: (brand: Brand) => void;
 }
@@ -15,12 +22,20 @@ const PRESET_COLORS = [
   '#2C3E50', '#1ABC9C', '#D35400', '#7F8C8D',
 ];
 
-export default function BrandModal({ onClose, onRegister }: Props) {
+export default function BrandModal({ open, onClose, onRegister }: Props) {
   const [name, setName] = useState('');
   const [color, setColor] = useState('#C0392B');
   const [domain, setDomain] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  function reset() {
+    setName('');
+    setDomain('');
+    setColor('#C0392B');
+    setError('');
+    setLoading(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +64,7 @@ export default function BrandModal({ onClose, onRegister }: Props) {
       }
 
       onRegister(data.brand as Brand);
+      reset();
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -56,75 +72,58 @@ export default function BrandModal({ onClose, onRegister }: Props) {
     }
   }
 
-  const previewText = getContrastColor(color);
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.8)' }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl p-8 shadow-2xl"
-        style={{ background: '#16213e', border: '1px solid rgba(255,255,255,0.1)' }}
-      >
-        <h2 className="text-2xl font-bold text-white mb-1">Register Your Brand</h2>
-        <p className="text-sm mb-6" style={{ color: '#8892a4' }}>
-          Claim your first squares and enter the battlefield.
-        </p>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); } }}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Register Your Brand</DialogTitle>
+          <DialogDescription>
+            Claim your first squares and enter the battlefield.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Brand Name</label>
-            <input
-              type="text"
+            <Label htmlFor="brand-name">Brand Name</Label>
+            <Input
+              id="brand-name"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Nike, MrBeast, My Startup..."
+              placeholder="Nike, MrBeast, My Startup…"
               maxLength={40}
               required
-              className="w-full rounded-lg px-4 py-2.5 text-white text-sm outline-none focus:ring-2"
-              style={{
-                background: '#0f3460',
-                border: '1px solid rgba(255,255,255,0.1)',
-                '--tw-ring-color': color,
-              } as React.CSSProperties}
+              autoFocus
             />
           </div>
 
           {/* Domain */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Website Domain <span style={{ color: '#8892a4' }}>(for your logo)</span>
-            </label>
-            <input
-              type="text"
+            <Label htmlFor="brand-domain">
+              Website Domain{' '}
+              <span className="text-white/25 font-normal">(optional — used for your logo)</span>
+            </Label>
+            <Input
+              id="brand-domain"
               value={domain}
               onChange={e => setDomain(e.target.value)}
               placeholder="nike.com"
-              className="w-full rounded-lg px-4 py-2.5 text-white text-sm outline-none focus:ring-2"
-              style={{
-                background: '#0f3460',
-                border: '1px solid rgba(255,255,255,0.1)',
-                '--tw-ring-color': color,
-              } as React.CSSProperties}
             />
           </div>
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Brand Colour</label>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <Label>Brand Colour</Label>
+            <div className="flex flex-wrap gap-2 mb-3">
               {PRESET_COLORS.map(c => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                  className="w-7 h-7 rounded-full transition-transform hover:scale-110 focus:outline-none flex-shrink-0"
                   style={{
                     background: c,
-                    outline: color === c ? `3px solid white` : 'none',
+                    outline: color === c ? '3px solid white' : '3px solid transparent',
                     outlineOffset: '2px',
                   }}
                 />
@@ -135,45 +134,46 @@ export default function BrandModal({ onClose, onRegister }: Props) {
                 type="color"
                 value={color}
                 onChange={e => setColor(e.target.value)}
-                className="w-10 h-10 rounded cursor-pointer border-0"
-                style={{ background: 'transparent' }}
+                className="w-10 h-10 rounded cursor-pointer border-0 bg-transparent"
               />
-              <span className="text-xs" style={{ color: '#8892a4' }}>or pick custom</span>
+              <span className="text-xs text-white/25">or pick any custom colour</span>
             </div>
           </div>
 
           {/* Preview */}
           <div
-            className="rounded-lg px-4 py-3 text-sm font-semibold text-center"
-            style={{ background: color, color: previewText }}
+            className="rounded-xl px-4 py-3 text-sm font-bold text-center transition-colors"
+            style={{ background: color, color: getContrastColor(color) }}
           >
             {name || 'Your Brand'}
           </div>
 
           {error && (
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-red-400 rounded-lg bg-red-400/10 border border-red-400/20 px-3 py-2">
+              {error}
+            </p>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button
+          <div className="flex gap-3 pt-1">
+            <Button
               type="button"
-              onClick={onClose}
-              className="flex-1 rounded-lg py-2.5 text-sm font-medium text-gray-300 transition-colors hover:text-white"
-              style={{ background: 'rgba(255,255,255,0.07)' }}
+              variant="outline"
+              className="flex-1"
+              onClick={() => { reset(); onClose(); }}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="flex-1 rounded-lg py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ background: color }}
+              className="flex-1 font-bold"
+              style={{ background: color, color: getContrastColor(color) }}
             >
-              {loading ? 'Registering...' : 'Enter the Battlefield'}
-            </button>
+              {loading ? 'Registering…' : 'Enter the Battlefield ⚔️'}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
