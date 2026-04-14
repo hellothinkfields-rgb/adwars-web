@@ -3,6 +3,9 @@ export interface Brand {
   name: string;
   color: string;
   domain: string | null;
+  charity_name: string | null;
+  charity_url: string | null;
+  user_id: string | null;
   created_at: string;
 }
 
